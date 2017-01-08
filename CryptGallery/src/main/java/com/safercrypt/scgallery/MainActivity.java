@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
                 ImageItem item = (ImageItem) parent.getItemAtPosition(position);
-                Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
+                Intent intent = new Intent(MainActivity.this, DetailsFullscreenActivity.class);
                 intent.putExtra("path", item.getPath());
                 intent.putExtra("bitmap",item.getImage());
                 intent.putExtra("pathPreview", item.getPathPreview());
