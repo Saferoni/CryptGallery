@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity
     private final int PHOTO_OK = 1;
     private final int NO_PHOTO = 0;
     // обявил файлы для дериктории сохранения фото и переменная для хронения имени сделанного фото
-    private File directory, uriNameFile;
+    private static File directory;
 
     private String directoryString;
     private int startI = 0; // переменная нужна будет для подгрузки фото в галерею
@@ -110,9 +110,9 @@ public class MainActivity extends AppCompatActivity
     }
 
     // метод формирующий URI (путь и имя ) создаваемых файлов для передачи в интенте камере
-    private Uri generateFileUri() {
+    protected static Uri generateFileUri() {
         long t = System.currentTimeMillis();
-        uriNameFile = new File(directory.getPath()
+        File uriNameFile = new File(directory.getPath()
                 + "/photo/"
                 + "photo_"
                 + String.format("%tF_%<tH-%<tM-%<tS",t)

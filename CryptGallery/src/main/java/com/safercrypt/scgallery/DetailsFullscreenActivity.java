@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
@@ -31,9 +32,9 @@ import java.io.File;
  */
 
 
-//TODO сделать сисием меню прозрачное
+
 //TODO сделать слайд фото
-//TODO сделать управление фотографиями
+//TODO реализовать зумм
 
 public class DetailsFullscreenActivity extends AppCompatActivity {
 
@@ -124,10 +125,9 @@ public class DetailsFullscreenActivity extends AppCompatActivity {
 
         mVisible = true;
         mControlsView = (LinearLayout) findViewById(R.id.fullscreen_content_controls);
-        Button bottomShare = (Button) findViewById(R.id.bottomShare);
+        bottomShare = (Button) findViewById(R.id.bottomShare);
+        bottomDelete = (Button) findViewById(R.id.bottomDelete);
 
-
-        // TODO может интентом передавать сразу ArrayList <ImageItem>?
         path = getIntent().getStringExtra("path");
         bitmap = getIntent().getParcelableExtra("bitmap");
         pathPreview = getIntent().getStringExtra("pathPreview");
@@ -138,37 +138,61 @@ public class DetailsFullscreenActivity extends AppCompatActivity {
         t.execute();
 
 
-        // нахожу тулбар и наполняю кнопками
+        // нахожу тулбар и нпаолняю его
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         actionBar = getSupportActionBar();
         actionBar.setTitle(nameFotoOnMenu(path));
         actionBar.setDisplayHomeAsUpEnabled(true);
-        //потом прячу в методе onPostCreate
-
-        //TODO Кнопка флоатинг на фулскрине отвечает за переход на камеру как и в основном активити
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.d("BAG","нажал на кнопку");
-            }
-        });
-
-        //делаю прозрачным статус бар пока так как нашел думаю есть проще вариант
+        //делаю прозрачным статус бар, пока так, думаю есть проще вариант
         Window window = this.getWindow();
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorCleen));
-
-        //флаг для отображения сразу на весь экран
+        //назначаю флаг для отображения сразу на весь экран
         imageView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
+        //потом прячу все бары в методе onPostCreate
 
         // Set up the user interaction to manually show or hide the system UI.
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 toggle();
+            }
+        });
+
+        bottomShare.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent shareIntent = new Intent();
+                Uri imageUri = Uri.parse("file://" + path);
+                //ниже залочено на будущее(когда будет шифрование) код для реализации обмена фото через
+                //общую папку android com.safercrypt.android.scgallery.share.files
+                //раельизция через FileProvider
+                //File file = new File(path);
+                //Uri imageUri = FileProvider.getUriForFile(Context, "com.safercrypt.android.scgallery.share.files", file);
+                shareIntent.setAction(Intent.ACTION_SEND);
+                shareIntent.setType("image/jpeg");
+                shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
+                startActivity(Intent.createChooser(shareIntent, getResources().getText(R.string.send_to)));
+            }
+        });
+        bottomDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(deleteFileButton()) finish();
+            }
+        });
+
+        //Кнопка перехода на камеру как и в основном активити
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.d("BAG","нажал на кнопку");
+                Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, MainActivity.generateFileUri());
+                startActivityForResult(takePictureIntent, 1);
             }
         });
 
@@ -208,7 +232,7 @@ public class DetailsFullscreenActivity extends AppCompatActivity {
         // are available.
         delayedHide(100);
     }
-
+    //проверяю состояние меню и вызываю соответственные методы
     private void toggle() {
         if (mVisible) {
             hide();
@@ -253,7 +277,8 @@ public class DetailsFullscreenActivity extends AppCompatActivity {
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_details, menu);
+        //меню пока спрятал переношу вниз экрана
+        //getMenuInflater().inflate(R.menu.menu_details, menu);
         return true;
     }
 
