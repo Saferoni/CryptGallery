@@ -6,9 +6,8 @@
         android:drawSelectorOnTop="true"
         android:gravity="center"
         android:numColumns="@integer/column_count"
-        android:stretchMode="columnWidth"
         android:focusable="true"
         android:clickable="true"
-        android:horizontalSpacing="0.2dp"
-        android:verticalSpacing="0.2dp"
+        android:horizontalSpacing="1dp"
+        android:verticalSpacing="1dp"
     />
