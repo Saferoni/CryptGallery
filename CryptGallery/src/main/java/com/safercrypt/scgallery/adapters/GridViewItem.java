@@ -1,4 +1,4 @@
-package com.safercrypt.scgallery;
+package com.safercrypt.scgallery.adapters;
 
 import android.content.Context;
 import android.util.AttributeSet;

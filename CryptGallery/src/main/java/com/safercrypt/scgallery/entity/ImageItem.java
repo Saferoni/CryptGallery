@@ -1,4 +1,4 @@
-package com.safercrypt.scgallery;
+package com.safercrypt.scgallery.entity;
 
 import android.graphics.Bitmap;
 

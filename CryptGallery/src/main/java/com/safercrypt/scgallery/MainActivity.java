@@ -3,12 +3,8 @@ package com.safercrypt.scgallery;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
-import android.media.ExifInterface;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -25,9 +21,13 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.RelativeLayout;
 
+import com.safercrypt.scgallery.activities.DetailsFullscreenActivity;
+import com.safercrypt.scgallery.adapters.GridViewAdapter;
+import com.safercrypt.scgallery.entity.ImageItem;
+import com.safercrypt.scgallery.utils.FileHelper;
+import com.safercrypt.scgallery.utils.ImageProcessor;
+
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 
 //TODO сгруппировать и вынести методы в отдельные классы
@@ -60,8 +60,9 @@ public class MainActivity extends AppCompatActivity
         GridView gridView = (GridView) findViewById(R.id.gridView);
         gridAdapter = new GridViewAdapter(this, R.layout.gallery_grid_item, data);
         gridView.setAdapter(gridAdapter);
-        // запускаю проверку и создание диерктории для файлов
-        detectAndCreateDirectory();
+
+        // запускаю проверку и создание диерктории для файлов ложа в нее путь к программе
+        FileHelper.detectAndCreateDirectory(getFilesDir().getPath());
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -105,55 +106,11 @@ public class MainActivity extends AppCompatActivity
     //метод вызова внешней камеры
     private void takePictureIntent(int actionCode) {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, generateFileUri());
+        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, FileHelper.generateFileUri());
         startActivityForResult(takePictureIntent, actionCode);
     }
 
-    // метод формирующий URI (путь и имя ) создаваемых файлов для передачи в интенте камере
-    protected static Uri generateFileUri() {
-        long t = System.currentTimeMillis();
-        File uriNameFile = new File(directory.getPath()
-                + "/photo/"
-                + "photo_"
-                + String.format("%tF_%<tH-%<tM-%<tS",t)
-                + ".jpg");
-        return Uri.fromFile(uriNameFile);
-    }
-
-    // проверка и формирование если необходимо деректорий
-    private void detectAndCreateDirectory() {
-        //Получаем состояние SD карты сравниваем его с состоянимем когда доступна и если true выполняем условие
-        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            createDirectoryFile(Environment.getExternalStorageDirectory().toString());
-        }else{
-            // если катры нету берем папку программы
-            createDirectoryFile(getFilesDir().getPath());
-        }
-    }
-
-    // метод создания дикректории для хранения файлов и привю
-    private void createDirectoryFile(String dir){
-        directory = new File(dir + "/CryptGallery/media");
-        // проверяю есть ли директория, если нету создаю
-        if (!directory.exists()){
-            createFileNoMedia(directory.getPath() + "/photo/.nomedia");
-            createFileNoMedia(directory.getPath() + "/preview/.nomedia");
-        }
-    }
-
-    // создание файла noMedia
-    private void createFileNoMedia(String dir) {
-        File noMediaFileCreate = new File(dir);
-        noMediaFileCreate.getParentFile().mkdirs();
-        try {
-            noMediaFileCreate.createNewFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    // Ниже все для формирования выдвижного меню
+    // формирования выдвижного меню
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -211,13 +168,13 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
+    //использую для перерисовки грида
     @Override
     protected void onPause() {
         super.onPause();
         data.clear();
         gridAdapter.clear();
     }
-
     @Override
     protected void onStart() {
         super.onStart();
@@ -252,7 +209,7 @@ public class MainActivity extends AppCompatActivity
 
     //Вызов и наполнение арай листа превю обектами типа ImageItem пока все обекты за раз через поток выше
     private ArrayList<ImageItem> getData() {
-        directoryString = directory.getPath();
+        directoryString = FileHelper.getDirectory().getPath();
         ArrayList<ImageItem> imageItems = new ArrayList<ImageItem>();
         String[] imgs = new File(directoryString + "/photo").list();
         /** указывю уровень сжимается фото  в 200 px для превю*/
@@ -263,7 +220,8 @@ public class MainActivity extends AppCompatActivity
             String path = directoryString + "/photo/" + imgs[i];
             String pathPreview = directoryString + "/preview/" + imgs[i];
             if (!new File(pathPreview).exists()) {
-                createPreviewFile((decodeSampledBitmapFromResource(path, px, px)), pathPreview);
+                FileHelper.createPreviewFile(
+                        (ImageProcessor.decodeSampledBitmapFromResource(path, px, px)), pathPreview);
             }
             Bitmap bitmap = BitmapFactory.decodeFile(pathPreview);
             /** передаю обработанное фото в лист imageItem */
@@ -272,84 +230,5 @@ public class MainActivity extends AppCompatActivity
         return imageItems;
     }
 
-
-
-    //Метод перекодирования фото для пиревю
-    public static Bitmap decodeSampledBitmapFromResource(String path, int reqWidth, int reqHeight) {
-        // Читаем с inJustDecodeBounds=true для определения размеров
-        final BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(path, options);
-        options.inPreferredConfig = Bitmap.Config.RGB_565;
-        // Вычисляем inSampleSize
-        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
-        // Читаем с использованием inSampleSize коэффициента
-        options.inJustDecodeBounds = false;
-        //Делаем проверку на ориентацию фото с оригиналом и возварщаем привю
-        return detectExifAndRotate(path,(BitmapFactory.decodeFile(path, options)));
-    }
-
-    //анализ фотографии и разворот если нужно
-    public static Bitmap detectExifAndRotate(String path, Bitmap bitm){
-        int rotate = 0;
-        Bitmap bitmap = bitm;
-        try {
-            ExifInterface exif = new ExifInterface(path);
-            int exifOrientation = exif.getAttributeInt(
-                    ExifInterface.TAG_ORIENTATION,
-                    ExifInterface.ORIENTATION_NORMAL);
-            switch (exifOrientation) {
-                case ExifInterface.ORIENTATION_ROTATE_90:
-                    rotate = 90;
-                    break;
-                case ExifInterface.ORIENTATION_ROTATE_180:
-                    rotate = 180;
-                    break;
-                case ExifInterface.ORIENTATION_ROTATE_270:
-                    rotate = 270;
-                    break;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        if (rotate != 0) {
-            int w = bitmap.getWidth();
-            int h = bitmap.getHeight();
-            Matrix mtx = new Matrix();
-            mtx.preRotate(rotate);
-            bitmap = Bitmap.createBitmap(bitmap, 0, 0, w, h, mtx, false);
-        }
-        return bitmap;
-    }
-
-    //метод для вычисления размера пережимаемого фото под заданные параметры
-    protected static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
-        // Реальные размеры изображения
-        final int height = options.outHeight;
-        final int width = options.outWidth;
-        int inSampleSize = 1;
-        if (height > reqHeight || width > reqWidth) {
-            final int halfHeight = height / 2;
-            final int halfWidth = width / 2;
-            // Вычисляем наибольший inSampleSize, который будет кратным двум и оставит полученные размеры больше, чем требуемые
-            while ((halfHeight / inSampleSize) > reqHeight
-                    && (halfWidth / inSampleSize) > reqWidth) {
-                inSampleSize *= 2;
-            }
-        }
-        return inSampleSize;
-    }
-
-    //Метод записи файлов привю в папку preview
-    private void createPreviewFile(Bitmap bitmap, String path){
-        try {
-            FileOutputStream filePreview = new FileOutputStream(path);
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 75, filePreview);
-            filePreview.flush();
-            filePreview.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
 }

@@ -1,4 +1,4 @@
-package com.safercrypt.scgallery;
+package com.safercrypt.scgallery.adapters;
 
 import android.app.Activity;
 import android.content.Context;
@@ -8,14 +8,18 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 
+import com.safercrypt.scgallery.entity.ImageItem;
+import com.safercrypt.scgallery.R;
+
 import java.util.ArrayList;
 
-public class GridViewAdapter extends ArrayAdapter<ImageItem> {
-    private Context context;
-    private int layoutResourceId;
-    private ArrayList<ImageItem> data;
+ public class GridViewAdapter extends ArrayAdapter<ImageItem> {
+     private Context context;
+     private int layoutResourceId;
+     private ArrayList<ImageItem> data;
 
-    public GridViewAdapter(Context context, int layoutResourceId, ArrayList<ImageItem> data) {
+
+     public GridViewAdapter(Context context, int layoutResourceId, ArrayList<ImageItem> data) {
         super(context, layoutResourceId, data);
         this.layoutResourceId = layoutResourceId;
         this.context = context;

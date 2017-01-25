@@ -34,7 +34,7 @@
         </provider>
 
         <activity
-            android:name=".DetailsFullscreenActivity"
+            android:name=".activities.DetailsFullscreenActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_details_fullscreen"
             android:theme="@style/FullscreenTheme"></activity>

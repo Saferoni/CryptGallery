@@ -1,4 +1,4 @@
-package com.safercrypt.scgallery;
+package com.safercrypt.scgallery.activities;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -23,6 +23,10 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+
+import com.safercrypt.scgallery.R;
+import com.safercrypt.scgallery.utils.FileHelper;
+import com.safercrypt.scgallery.utils.ImageProcessor;
 
 import java.io.File;
 
@@ -191,7 +195,7 @@ public class DetailsFullscreenActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Log.d("BAG","нажал на кнопку");
                 Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, MainActivity.generateFileUri());
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, FileHelper.generateFileUri());
                 startActivityForResult(takePictureIntent, 1);
             }
         });
@@ -346,7 +350,7 @@ public class DetailsFullscreenActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... params) {
             //bitmap = GalleryActivity.detectExifAndRotate(path, (BitmapFactory.decodeFile(path)));
-            bitmap = MainActivity.decodeSampledBitmapFromResource(path, i, i);
+            bitmap = ImageProcessor.decodeSampledBitmapFromResource(path, i, i);
             return null;
         }
         @Override
