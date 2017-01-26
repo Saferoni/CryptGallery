@@ -22,7 +22,7 @@ public class FileHelper {
         return directory;
     }
 
-    // метод формирующий URI (путь и имя ) создаваемых файлов для передачи в интенте камере
+    // (старый вариант) метод формирующий URI (путь и имя ) создаваемых файлов для передачи в интенте камере
     public static Uri generateFileUri() {
         long t = System.currentTimeMillis();
         File uriNameFile = new File(directory.getPath()
@@ -31,6 +31,17 @@ public class FileHelper {
                 + String.format("%tF_%<tH-%<tM-%<tS",t)
                 + ".jpg");
         return Uri.fromFile(uriNameFile);
+    }
+
+    public static String generateNamePhoto(){
+        long t = System.currentTimeMillis();
+        String namePhoto = "/photo_" + String.format("%tF_%<tH-%<tM-%<tS",t);
+
+        while (new File(directory.getPath() +"/photo"+ namePhoto + ".jpg").exists()){
+            namePhoto = namePhoto + "+";
+        }
+        namePhoto = namePhoto + ".jpg";
+        return namePhoto;
     }
 
     // проверка и формирование если необходимо деректорий
@@ -43,7 +54,6 @@ public class FileHelper {
             createDirectoryFile(programDirectory);
         }
     }
-
 
     //Метод записи файлов привю в папку preview
     public static void createPreviewFile(Bitmap bitmap, String path){

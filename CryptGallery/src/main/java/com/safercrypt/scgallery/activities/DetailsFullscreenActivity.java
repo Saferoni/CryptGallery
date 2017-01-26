@@ -7,11 +7,9 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -25,7 +23,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import com.safercrypt.scgallery.R;
-import com.safercrypt.scgallery.utils.FileHelper;
+import com.safercrypt.scgallery.utils.CameraHelper;
 import com.safercrypt.scgallery.utils.ImageProcessor;
 
 import java.io.File;
@@ -40,7 +38,7 @@ import java.io.File;
 //TODO сделать слайд фото
 //TODO реализовать зумм
 
-public class DetailsFullscreenActivity extends AppCompatActivity {
+public class DetailsFullscreenActivity extends CameraHelper {
 
     private String path, pathPreview;
     private Bitmap bitmap;
@@ -193,10 +191,7 @@ public class DetailsFullscreenActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.d("BAG","нажал на кнопку");
-                Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, FileHelper.generateFileUri());
-                startActivityForResult(takePictureIntent, 1);
+                startCameraActivity();
             }
         });
 
@@ -220,11 +215,7 @@ public class DetailsFullscreenActivity extends AppCompatActivity {
                 return true;
            }
         });*/
-
-        // Upon interacting with UI controls, delay any scheduled hide()
-        // operations to prevent the jarring behavior of controls going away
-        // while interacting with the UI.
-        findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
+        
     }
 
     @Override
@@ -244,7 +235,6 @@ public class DetailsFullscreenActivity extends AppCompatActivity {
             show();
         }
     }
-
     private void hide() {
         // Hide UI first
         actionBar = getSupportActionBar();
@@ -258,7 +248,6 @@ public class DetailsFullscreenActivity extends AppCompatActivity {
         mHideHandler.removeCallbacks(mShowPart2Runnable);
         mHideHandler.postDelayed(mHidePart2Runnable, UI_ANIMATION_DELAY);
     }
-
     @SuppressLint("InlinedApi")
     private void show() {
         // Show the system bar
@@ -328,17 +317,17 @@ public class DetailsFullscreenActivity extends AppCompatActivity {
         return a;
     }
 
-    // метод формирования только даты создания в имени файла
+    // формирование имени файла для меню
     private String nameFotoOnMenu(String path){
         String name = path;
         int i = name.lastIndexOf("photo_");
         if (i != -1) {
-            name = path.substring(i+6, path.length()-7);
+            name = path.substring(i+6, path.length()-4);
         }
         return  name;
     }
 
-    // поток для привидения в bitmap оригинала фотки c сжатием
+    // ПОТОК для привидения в bitmap оригинала фотки c сжатием в 600px пока так без зума норм
     public class TaskBitmapPhoto extends AsyncTask<Void, Void, Void> {
         int i;
         @Override

@@ -8,7 +8,7 @@ import android.media.ExifInterface;
 import java.io.IOException;
 
 /**
- * Данный клас отвечает за обработку, пережатие изорбажиенй
+ * обработка и пережатие изорбажиенй
  */
 
 public class ImageProcessor {
